@@ -21,6 +21,9 @@ Imports:
     magrittr
 Suggests:
     testthat (>= 3.0.0),
+    knitr,
+    rmarkdown,
     tibble
+VignetteBuilder: knitr
 URL: https://github.com/mcruer/filtertools
 BugReports: https://github.com/mcruer/filtertools/issues

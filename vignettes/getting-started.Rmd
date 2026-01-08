@@ -1,0 +1,220 @@
+---
+title: "Getting Started with filtertools"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting Started with filtertools}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(filtertools)
+library(dplyr)
+```
+
+## Why filtertools?
+When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose:
+
+```{r verbose-dplyr, eval=FALSE}
+# Keep rows where name contains "John"
+data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)))
+
+# Remove rows where status contains "inactive"
+data %>% filter(!str_detect(status, regex("inactive", ignore_case = TRUE)))
+
+# Remove rows where all of these columns are NA
+data %>% filter(!if_all(c(age, income), is.na))
+```
+
+filtertools provides intuitive wrappers that make these operations more readable:
+
+```{r filtertools-examples, eval=FALSE}
+data %>% filter_in(name, "John")
+data %>% filter_out(status, "inactive")
+data %>% filter_out_na(age, income)
+```
+
+## String Pattern Filtering
+
+### filter_in(): Keep matching rows
+
+Use `filter_in()` to keep rows where a column matches a pattern:
+
+```{r filter-in-basic}
+fruits <- tibble(
+ name = c("apple", "banana", "cherry", "apricot", "blueberry"),
+ color = c("red", "yellow", "red", "orange", "blue")
+)
+
+# Keep fruits containing "berry"
+fruits %>% filter_in(name, "berry")
+
+# Keep fruits starting with "a"
+fruits %>% filter_in(name, "^a")
+```
+
+### filter_out(): Remove matching rows
+
+Use `filter_out()` to remove rows where a column matches a pattern:
+
+```{r filter-out-basic}
+# Remove fruits containing "apple"
+fruits %>% filter_out(name, "apple")
+
+# Remove red fruits
+fruits %>% filter_out(color, "red")
+```
+
+### Case sensitivity
+
+By default, matching is case-insensitive:
+```{r case-insensitive}
+fruits %>% filter_in(name, "APPLE")
+```
+
+Set `ignore_case = FALSE` for case-sensitive matching:
+
+```{r case-sensitive}
+fruits %>% filter_in(name, "APPLE", ignore_case = FALSE)
+```
+
+### Regex patterns
+
+The `pattern` argument accepts full regular expressions:
+
+```{r regex-patterns}
+# Starts with "a" or "b"
+fruits %>% filter_in(name, "^[ab]")
+
+# Ends with "y"
+fruits %>% filter_in(name, "y$")
+
+# Contains "rr" or "pp"
+fruits %>% filter_in(name, "rr|pp")
+```
+
+## NA Handling in String Filters
+
+By default, `filter_in()` and `filter_out()` **preserve rows with NA values**. This prevents accidental data loss during exploratory analysis:
+
+```{r na-handling-default}
+data_with_na <- tibble(
+ status = c("active", "inactive", "pending", NA, "active"),
+ value = 1:5
+)
+
+# NA rows are kept by default
+data_with_na %>% filter_out(status, "inactive")
+```
+
+Use `na_rm = TRUE` to exclude NA rows:
+
+```{r na-handling-remove}
+data_with_na %>% filter_out(status, "inactive", na_rm = TRUE)
+```
+
+## NA Filtering
+
+### filter_out_na(): Remove rows with NA
+
+Remove rows where specified columns contain NA:
+
+```{r filter-out-na}
+messy_data <- tibble(
+ a = c("x", "y", NA, NA),
+ b = c("x", NA, "z", NA),
+ c = c(1, 2, 3, 4)
+)
+
+messy_data
+```
+
+By default (`if_any_or_all = "if_all"`), rows are removed only when **all** specified columns are NA:
+
+```{r filter-out-na-all}
+# Remove rows where BOTH a and b are NA
+messy_data %>% filter_out_na(a, b)
+```
+
+Use `if_any_or_all = "if_any"` to remove rows where **any** specified column is NA:
+
+```{r filter-out-na-any}
+# Remove rows where a OR b is NA
+messy_data %>% filter_out_na(a, b, if_any_or_all = "if_any")
+```
+
+### filter_in_na(): Keep rows with NA
+
+The inverse operation - keep only rows containing NA:
+
+```{r filter-in-na}
+# Find rows where any column has NA
+messy_data %>% filter_in_na(a, b, if_any_or_all = "if_any")
+
+# Find rows where all specified columns are NA
+messy_data %>% filter_in_na(a, b, if_any_or_all = "if_all")
+```
+
+### Using tidyselect
+
+Both functions support tidyselect syntax:
+
+```{r tidyselect}
+# Check all columns
+messy_data %>% filter_out_na(everything(), if_any_or_all = "if_any")
+
+# Check columns starting with a pattern
+messy_data %>% filter_in_na(starts_with("a"), if_any_or_all = "if_any")
+```
+
+## Finding Non-Numeric Values
+
+`filter_out_numeric()` helps identify rows with non-numeric values - useful for data cleaning:
+
+```{r filter-out-numeric}
+survey_data <- tibble(
+ age = c("25", "thirty", "42", NA, "38"),
+ score = c("100", "85", "N/A", "92", "88")
+)
+
+# Find rows with any non-numeric values
+survey_data %>% filter_out_numeric()
+
+# Check only the age column
+survey_data %>% filter_out_numeric(.cols = age)
+
+# Exclude NA from results
+survey_data %>% filter_out_numeric(.cols = age, na_rm = TRUE)
+```
+
+## Filtering Character Vectors
+
+`str_filter()` works directly on character vectors (not data frames):
+
+```{r str-filter}
+fruits <- c("apple", "banana", "cherry", "apricot")
+
+# Keep items containing "a"
+str_filter(fruits, "a")
+
+# Keep items NOT starting with "a"
+str_filter(fruits, "^a", negate = TRUE)
+```
+
+## Summary
+
+| Function | Purpose | NA behavior |
+|----------|---------|-------------|
+| `filter_in()` | Keep rows matching pattern | Preserves NA by default |
+| `filter_out()` | Remove rows matching pattern | Preserves NA by default |
+| `filter_in_na()` | Keep rows with NA | - |
+| `filter_out_na()` | Remove rows with NA | - |
+| `filter_out_numeric()` | Keep non-numeric rows | Includes NA by default |
+| `str_filter()` | Filter character vectors | - |
