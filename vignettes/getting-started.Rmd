@@ -21,49 +21,32 @@ library(dplyr)
 
 ## Why filtertools?
 
-When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose quickly.
+When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose:
 
-**Keep rows where name contains "John" (case-insensitive):**
-
-```{r verbose-string, eval=FALSE}
-# dplyr
+```{r verbose-dplyr, eval=FALSE}
+# Keep rows where name contains "John" (case-insensitive)
 data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)))
 
-# filtertools
-data %>% filter_in(name, "John")
-```
-
-**Remove rows where status contains "inactive":**
-
-```{r verbose-string-out, eval=FALSE}
-# dplyr
+# Remove rows where status contains "inactive"
 data %>% filter(!str_detect(status, regex("inactive", ignore_case = TRUE)))
 
-# filtertools
-data %>% filter_out(status, "inactive")
-```
+# Keep rows matching "John" OR where the column is NA (to preserve NA rows)
+data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)) | is.na(name))
 
-**NA handling is especially painful.** Remove rows where specific columns are all NA, but keep rows that have at least some data:
-
-```{r verbose-na, eval=FALSE}
-# dplyr - remove rows where ALL of age, income, AND address are NA
-data %>% filter(!(is.na(age) & is.na(income) & is.na(address)))
-# or equivalently
+# Remove rows where ALL of these columns are NA
 data %>% filter(!if_all(c(age, income, address), is.na))
 
-# filtertools
-data %>% filter_out_na(age, income, address)
+# Find rows where ANY of these columns is NA
+data %>% filter(if_any(c(age, income, address), is.na))
 ```
 
-**Find rows where ANY of several columns contains NA** (useful for data quality checks):
+filtertools provides intuitive wrappers that make these operations more readable:
 
-```{r verbose-na-any, eval=FALSE}
-# dplyr
-data %>% filter(is.na(age) | is.na(income) | is.na(address))
-# or equivalently
-data %>% filter(if_any(c(age, income, address), is.na))
-
-# filtertools
+```{r filtertools-equivalents, eval=FALSE}
+data %>% filter_in(name, "John")
+data %>% filter_out(status, "inactive")
+data %>% filter_in(name, "John")
+data %>% filter_out_na(age, income, address)
 data %>% filter_in_na(age, income, address, if_any_or_all = "if_any")
 ```
 
