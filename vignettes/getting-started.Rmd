@@ -43,8 +43,8 @@ data %>% filter(if_any(c(age, income, address), is.na))
 filtertools provides intuitive wrappers that make these operations more readable:
 
 ```{r filtertools-equivalents, eval=FALSE}
-data %>% filter_in(name, "John")
-data %>% filter_out(status, "inactive")
+data %>% filter_in(name, "John", na_rm = TRUE)
+data %>% filter_out(status, "inactive", na_rm = TRUE)
 data %>% filter_in(name, "John")
 data %>% filter_out_na(age, income, address)
 data %>% filter_in_na(age, income, address, if_any_or_all = "if_any")
