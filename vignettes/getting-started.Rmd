@@ -20,21 +20,17 @@ library(dplyr)
 ```
 
 ## Why filtertools?
-<<<<<<< HEAD
 
 When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose quickly.
 
 **Keep rows where name contains "John" (case-insensitive):**
 
 ```{r verbose-string, eval=FALSE}
-# dplyr
-=======
 
 When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose:
 
 ```{r verbose-dplyr, eval=FALSE}
 # Keep rows where name contains "John" (case-insensitive)
->>>>>>> origin/claude/review-package-AMlUK
 data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)))
 
 # filtertools
@@ -76,7 +72,6 @@ data %>% filter(if_any(c(age, income, address), is.na))
 data %>% filter_in_na(age, income, address, if_any_or_all = "if_any")
 ```
 
-=======
 # Keep rows matching "John" OR where the column is NA (to preserve NA rows)
 data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)) | is.na(name))
 
@@ -97,7 +92,6 @@ data %>% filter_out_na(age, income, address)
 data %>% filter_in_na(age, income, address, if_any_or_all = "if_any")
 ```
 
->>>>>>> origin/claude/review-package-AMlUK
 ## Tidyselect Support
 
 All filtertools functions that operate on columns support tidyselect syntax. This means you can use helpers like `everything()`, `starts_with()`, `ends_with()`, `contains()`, and `matches()`:
