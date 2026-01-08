@@ -5,26 +5,26 @@
 \title{Filter out rows containing a specific string in a given column}
 \usage{
 filter_out(
-  df,
+  .data,
   col,
-  string,
+  pattern,
   ignore_case = TRUE,
-  drop.col = FALSE,
-  na.rm = FALSE
+  drop_col = FALSE,
+  na_rm = FALSE
 )
 }
 \arguments{
-\item{df}{A data frame or tibble.}
+\item{.data}{A data frame or tibble.}
 
 \item{col}{The column to filter on.}
 
-\item{string}{The string to look for.}
+\item{pattern}{The string pattern to look for.}
 
 \item{ignore_case}{Whether to ignore case (default is TRUE).}
 
-\item{drop.col}{Whether to remove the column that was filtered on (default is FALSE).}
+\item{drop_col}{Whether to remove the column that was filtered on (default is FALSE).}
 
-\item{na.rm}{Whether to remove NA values (default is FALSE).}
+\item{na_rm}{Whether to remove NA values (default is FALSE).}
 }
 \value{
 A filtered data frame.
@@ -36,6 +36,6 @@ This function filters out rows where the specified column contains the given str
 \dontrun{
 library(dplyr)
 tibble(x = c("apple", "banana", "cherry")) \%>\%
-  filter_out(col = x, string = "app")
+  filter_out(col = x, pattern = "app")
 }
 }

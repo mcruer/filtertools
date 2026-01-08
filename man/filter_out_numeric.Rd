@@ -4,14 +4,14 @@
 \alias{filter_out_numeric}
 \title{Filter Out Numeric Values from Selected Columns}
 \usage{
-filter_out_numeric(df, .cols = dplyr::everything(), na.rm = FALSE)
+filter_out_numeric(.data, .cols = dplyr::everything(), na_rm = FALSE)
 }
 \arguments{
-\item{df}{A dataframe to be filtered.}
+\item{.data}{A dataframe to be filtered.}
 
 \item{.cols}{Columns to check for non-numeric values; defaults to all columns.}
 
-\item{na.rm}{Logical; if TRUE, rows where the selected columns are NA are excluded.}
+\item{na_rm}{Logical; if TRUE, rows where the selected columns are NA are excluded.}
 }
 \value{
 A dataframe with rows containing non-numeric values in the specified columns.
@@ -31,5 +31,5 @@ df <- data.frame(
 filter_out_numeric(df)
 
 # Filter out rows with numeric values in column 'a', ignoring NAs
-filter_out_numeric(df, .cols = a, na.rm = TRUE)
+filter_out_numeric(df, .cols = a, na_rm = TRUE)
 }

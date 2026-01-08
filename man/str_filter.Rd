@@ -4,12 +4,12 @@
 \alias{str_filter}
 \title{Filter strings based on a regex pattern}
 \usage{
-str_filter(string, regex_string, ignore_case = TRUE, negate = FALSE)
+str_filter(string, pattern, ignore_case = TRUE, negate = FALSE)
 }
 \arguments{
 \item{string}{A character vector to be filtered.}
 
-\item{regex_string}{The regular expression pattern to match against.}
+\item{pattern}{The regular expression pattern to match against.}
 
 \item{ignore_case}{Logical; should case be ignored in the match? Defaults to TRUE.}
 

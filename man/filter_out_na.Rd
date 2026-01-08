@@ -4,17 +4,18 @@
 \alias{filter_out_na}
 \title{Filter Out Rows Containing NA in Specified Columns}
 \usage{
-filter_out_na(.df, ..., if_any_or_all = "if_all")
+filter_out_na(.data, ..., if_any_or_all = "if_all")
 }
 \arguments{
-\item{.df}{A dataframe or tibble}
+\item{.data}{A dataframe or tibble.}
 
-\item{...}{Columns to check for NA values}
+\item{...}{Columns to check for NA values.}
 
-\item{if_any_or_all}{Should the row be removed if any or all selected columns contain NA? Defaults to "if_all".}
+\item{if_any_or_all}{Should the row be removed if any or all selected columns contain NA?
+Must be either "if_any" or "if_all". Defaults to "if_all".}
 }
 \value{
-A tibble with rows containing NA in specified columns removed
+A tibble with rows containing NA in specified columns removed.
 }
 \description{
 This function removes rows from the data where specified columns contain NA values.

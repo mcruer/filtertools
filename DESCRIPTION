@@ -14,12 +14,13 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2
 Imports:
     dplyr (>= 1.0.0),
     stringr,
     magrittr
 Suggests:
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0),
+    tibble
 URL: https://github.com/mcruer/filtertools
 BugReports: https://github.com/mcruer/filtertools/issues
