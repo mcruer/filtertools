@@ -9,14 +9,40 @@ filter_out_na(.data, ..., if_any_or_all = "if_all")
 \arguments{
 \item{.data}{A dataframe or tibble.}
 
-\item{...}{Columns to check for NA values.}
+\item{...}{Columns to check for NA values. Supports tidyselect syntax
+(e.g., \code{everything()}, \code{starts_with("x")}).}
 
 \item{if_any_or_all}{Should the row be removed if any or all selected columns contain NA?
 Must be either "if_any" or "if_all". Defaults to "if_all".}
 }
 \value{
 A tibble with rows containing NA in specified columns removed.
+Grouping structure is preserved.
 }
 \description{
 This function removes rows from the data where specified columns contain NA values.
+}
+\details{
+The \code{if_any_or_all} parameter controls the removal logic:
+\itemize{
+\item \code{"if_all"} (default): Remove rows only when ALL specified columns are NA.
+Rows with at least one non-NA value are kept.
+\item \code{"if_any"}: Remove rows when ANY specified column is NA.
+Only rows with no NA values in the specified columns are kept.
+}
+}
+\examples{
+df <- tibble::tibble(
+  a = c("x", "y", NA, NA),
+  b = c("x", NA, "z", NA)
+)
+
+# Remove rows where ALL columns are NA (default)
+filter_out_na(df, a, b)
+# Keeps rows 1, 2, 3 (only row 4 has all NA)
+
+# Remove rows where ANY column is NA
+filter_out_na(df, a, b, if_any_or_all = "if_any")
+# Keeps only row 1 (the only row with no NAs)
+
 }

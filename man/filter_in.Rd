@@ -2,7 +2,7 @@
 % Please edit documentation in R/filter.R
 \name{filter_in}
 \alias{filter_in}
-\title{Filter rows containing a specific string in a given column}
+\title{Filter rows containing a specific string pattern}
 \usage{
 filter_in(
   .data,
@@ -16,26 +16,60 @@ filter_in(
 \arguments{
 \item{.data}{A data frame or tibble.}
 
-\item{col}{The column to filter on.}
+\item{col}{The column to filter on (unquoted).}
 
-\item{pattern}{The string pattern to look for.}
+\item{pattern}{A regex pattern to match. Use \code{stringr} regex syntax.}
 
-\item{ignore_case}{Whether to ignore case (default is TRUE).}
+\item{ignore_case}{Ignore case when matching (default TRUE).}
 
-\item{drop_col}{Whether to remove the column that was filtered on (default is FALSE).}
+\item{drop_col}{Remove the filtered column from results (default FALSE).}
 
-\item{na_rm}{Whether to remove NA values (default is FALSE).}
+\item{na_rm}{Remove rows where \code{col} is NA (default FALSE).}
 }
 \value{
 A filtered data frame.
 }
 \description{
-This function filters rows where the specified column contains the given string.
+Keep rows where the specified column matches a regex pattern.
+}
+\details{
+\subsection{NA Handling}{
+
+By default (\code{na_rm = FALSE}), rows where \code{col} is NA are \strong{preserved} in the
+output. This prevents accidental data loss during exploratory analysis. Set
+\code{na_rm = TRUE} to exclude NA rows.
+}
+
+\subsection{Pattern Matching}{
+
+The \code{pattern} argument accepts regular expressions. Common patterns:
+\itemize{
+\item \code{"foo"} - contains "foo" anywhere
+\item \code{"^foo"} - starts with "foo"
+\item \code{"foo$"} - ends with "foo"
+\item \code{"foo|bar"} - contains "foo" or "bar"
+}
+}
 }
 \examples{
-\dontrun{
-library(dplyr)
-tibble(x = c("apple", "banana", "cherry")) \%>\%
-  filter_in(col = x, pattern = "app")
+df <- tibble::tibble(
+  fruit = c("apple", "banana", "cherry", NA),
+  count = 1:4
+)
+
+# Keep rows containing "an"
+filter_in(df, fruit, "an")
+
+# Case insensitive by default
+filter_in(df, fruit, "APPLE")
+
+# Exclude NA rows
+filter_in(df, fruit, "an", na_rm = TRUE)
+
+# Use regex for starts-with
+filter_in(df, fruit, "^a")
+
 }
+\seealso{
+\code{\link[=filter_out]{filter_out()}} for the inverse operation
 }

@@ -17,22 +17,23 @@ filter_str(
 \arguments{
 \item{.data}{A data frame or tibble.}
 
-\item{col}{The column to filter on.}
+\item{col}{The column to filter on (unquoted).}
 
-\item{pattern}{The string pattern to look for.}
+\item{pattern}{The regex pattern to match against.}
 
 \item{ignore_case}{Whether to ignore case (default is TRUE).}
 
-\item{drop_col}{Whether to remove the column that was filtered on (default is FALSE).}
+\item{drop_col}{Whether to remove the filtered column from results (default is FALSE).}
 
-\item{negate}{Whether to keep or remove rows that match the string (default is FALSE).}
+\item{negate}{Whether to invert the match (default is FALSE).}
 
-\item{na_rm}{Whether to remove NA values (default is FALSE).}
+\item{na_rm}{Whether to remove rows where \code{col} is NA (default is FALSE).
+When FALSE, rows with NA in the filtered column are always kept.}
 }
 \value{
 A filtered data frame.
 }
 \description{
-Filter rows in a data frame based on string matching in a column
+Internal function used by \code{\link[=filter_in]{filter_in()}} and \code{\link[=filter_out]{filter_out()}}.
 }
 \keyword{internal}

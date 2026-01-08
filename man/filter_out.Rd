@@ -2,7 +2,7 @@
 % Please edit documentation in R/filter.R
 \name{filter_out}
 \alias{filter_out}
-\title{Filter out rows containing a specific string in a given column}
+\title{Filter out rows containing a specific string pattern}
 \usage{
 filter_out(
   .data,
@@ -16,26 +16,49 @@ filter_out(
 \arguments{
 \item{.data}{A data frame or tibble.}
 
-\item{col}{The column to filter on.}
+\item{col}{The column to filter on (unquoted).}
 
-\item{pattern}{The string pattern to look for.}
+\item{pattern}{A regex pattern to match. Use \code{stringr} regex syntax.}
 
-\item{ignore_case}{Whether to ignore case (default is TRUE).}
+\item{ignore_case}{Ignore case when matching (default TRUE).}
 
-\item{drop_col}{Whether to remove the column that was filtered on (default is FALSE).}
+\item{drop_col}{Remove the filtered column from results (default FALSE).}
 
-\item{na_rm}{Whether to remove NA values (default is FALSE).}
+\item{na_rm}{Remove rows where \code{col} is NA (default FALSE).}
 }
 \value{
 A filtered data frame.
 }
 \description{
-This function filters out rows where the specified column contains the given string.
+Remove rows where the specified column matches a regex pattern.
+}
+\details{
+\subsection{NA Handling}{
+
+By default (\code{na_rm = FALSE}), rows where \code{col} is NA are \strong{preserved} in the
+output. This is because NA values don't match the pattern being filtered out.
+Set \code{na_rm = TRUE} to also exclude NA rows.
+}
+
+\subsection{Pattern Matching}{
+
+The \code{pattern} argument accepts regular expressions. See \code{\link[=filter_in]{filter_in()}} for
+pattern examples.
+}
 }
 \examples{
-\dontrun{
-library(dplyr)
-tibble(x = c("apple", "banana", "cherry")) \%>\%
-  filter_out(col = x, pattern = "app")
+df <- tibble::tibble(
+  status = c("active", "inactive", "pending", NA),
+  id = 1:4
+)
+
+# Remove inactive rows (keeps NA)
+filter_out(df, status, "inactive")
+
+# Remove inactive rows AND NA rows
+filter_out(df, status, "inactive", na_rm = TRUE)
+
 }
+\seealso{
+\code{\link[=filter_in]{filter_in()}} for the inverse operation
 }

@@ -2,34 +2,50 @@
 % Please edit documentation in R/filter.R
 \name{filter_out_numeric}
 \alias{filter_out_numeric}
-\title{Filter Out Numeric Values from Selected Columns}
+\title{Filter to rows with non-numeric values}
 \usage{
 filter_out_numeric(.data, .cols = dplyr::everything(), na_rm = FALSE)
 }
 \arguments{
 \item{.data}{A dataframe to be filtered.}
 
-\item{.cols}{Columns to check for non-numeric values; defaults to all columns.}
+\item{.cols}{Columns to check for non-numeric values. Defaults to all columns.
+Supports tidyselect syntax.}
 
-\item{na_rm}{Logical; if TRUE, rows where the selected columns are NA are excluded.}
+\item{na_rm}{If TRUE, exclude rows where the selected columns are NA (default FALSE).}
 }
 \value{
-A dataframe with rows containing non-numeric values in the specified columns.
+A dataframe containing only rows with at least one non-numeric value
+in the specified columns.
 }
 \description{
-This function filters a dataframe to retain rows where the selected columns contain non-numeric values.
-It can optionally remove rows where the selected columns are NA.
+Keep rows where selected columns contain values that cannot be converted to numbers.
+Useful for finding data entry errors or non-numeric entries in columns that
+should be numeric.
+}
+\details{
+A value is considered "non-numeric" if \code{as.numeric()} returns NA (with warnings
+suppressed). This means:
+\itemize{
+\item \code{"123"} is numeric
+\item \code{"12.5"} is numeric
+\item \code{"-3"} is numeric
+\item \code{"abc"} is non-numeric
+\item \code{"12a"} is non-numeric
+\item \code{NA} is treated as non-numeric by default (use \code{na_rm = TRUE} to exclude)
+}
 }
 \examples{
-# Example dataframe
 df <- data.frame(
   a = c("1", "2", "x", NA),
-  b = c("y", "2", "3", "4")
+  b = c("y", "2", "3", "4"),
+  stringsAsFactors = FALSE
 )
 
-# Filter out rows with numeric values in all columns
+# Find rows with any non-numeric values
 filter_out_numeric(df)
 
-# Filter out rows with numeric values in column 'a', ignoring NAs
+# Check only column 'a', excluding NAs
 filter_out_numeric(df, .cols = a, na_rm = TRUE)
+
 }

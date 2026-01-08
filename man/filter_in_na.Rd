@@ -9,14 +9,38 @@ filter_in_na(.data, ..., if_any_or_all = "if_all")
 \arguments{
 \item{.data}{A dataframe or tibble.}
 
-\item{...}{Columns to check for NA values.}
+\item{...}{Columns to check for NA values. Supports tidyselect syntax
+(e.g., \code{everything()}, \code{starts_with("x")}).}
 
 \item{if_any_or_all}{Should the row be kept if any or all selected columns contain NA?
 Must be either "if_any" or "if_all". Defaults to "if_all".}
 }
 \value{
 A tibble with only rows containing NA in specified columns.
+Grouping structure is preserved.
 }
 \description{
 This function keeps rows from the data where specified columns contain NA values.
+}
+\details{
+The \code{if_any_or_all} parameter controls the selection logic:
+\itemize{
+\item \code{"if_all"} (default): Keep rows only when ALL specified columns are NA.
+\item \code{"if_any"}: Keep rows when ANY specified column is NA.
+}
+}
+\examples{
+df <- tibble::tibble(
+  a = c("x", "y", NA, NA),
+  b = c("x", NA, "z", NA)
+)
+
+# Keep rows where ALL columns are NA (default)
+filter_in_na(df, a, b)
+# Keeps only row 4 (the only row with all NA)
+
+# Keep rows where ANY column is NA
+filter_in_na(df, a, b, if_any_or_all = "if_any")
+# Keeps rows 2, 3, 4 (all have at least one NA)
+
 }
