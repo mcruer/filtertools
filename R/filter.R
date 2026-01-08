@@ -1,55 +1,38 @@
-#' Internal Function to Select Columns, with Default to All
-#'
-#' This internal function returns a character vector of selected column names.
-#'
-#' @param .df A dataframe or tibble
-#' @param ... Columns to select, defaulting to all columns if none are specified
-#' @param include_grouped Logical, should grouped columns be included? Defaults to FALSE.
-#' @importFrom magrittr %>%
-#'
-#' @return A character vector of column names
-select_cols_default_all <- function(.df, ..., include_grouped = FALSE) {
-  if (missing(...)) {
-    cols <- names(.df)
-  } else {
-    cols <- rlang::ensyms(...)
-    cols <- purrr::map_chr(cols, rlang::as_string)
-  }
-
-  if (include_grouped) {
-    grouped_vars <- dplyr::group_vars(.df)
-    # Reorder to keep grouped variables at their original positions
-    cols <- unique(c(cols, grouped_vars))
-    cols <- cols[order(match(cols, names(.df)))]
-  }
-
-  return(cols)
-}
-
-
 #' Filter Out Rows Containing NA in Specified Columns
 #'
 #' This function removes rows from the data where specified columns contain NA values.
 #'
-#' @param .df A dataframe or tibble
-#' @param ... Columns to check for NA values
-#' @param if_any_or_all Should the row be removed if any or all selected columns contain NA? Defaults to "if_all".
+#' @param .data A dataframe or tibble.
+#' @param ... Columns to check for NA values.
+#' @param if_any_or_all Should the row be removed if any or all selected columns contain NA?
+#'   Must be either "if_any" or "if_all". Defaults to "if_all".
 #'
-#' @return A tibble with rows containing NA in specified columns removed
+#' @return A tibble with rows containing NA in specified columns removed.
+#'
+#' @importFrom dplyr ungroup select group_vars filter if_all if_any all_of group_by across
+#' @importFrom magrittr %>%
 #' @export
-filter_out_na <- function (.df, ..., if_any_or_all = "if_all") {
-  col.names <- .df %>% dplyr::ungroup() %>% dplyr::select(...) %>% names()
-  groups <- dplyr::group_vars(.df)
+filter_out_na <- function(.data, ..., if_any_or_all = "if_all") {
+  if (!is.data.frame(.data)) {
+    stop("`.data` must be a data frame or tibble.", call. = FALSE)
+  }
+  if (!if_any_or_all %in% c("if_any", "if_all")) {
+    stop("`if_any_or_all` must be either \"if_any\" or \"if_all\".", call. = FALSE)
+  }
+
+  col.names <- .data %>% dplyr::ungroup() %>% dplyr::select(...) %>% names()
+  groups <- dplyr::group_vars(.data)
+
   if (if_any_or_all == "if_any") {
-    .df %>%
-      dplyr::ungroup () %>%
-      dplyr::filter (dplyr::if_all (dplyr::all_of (col.names), ~ !is.na(.x))) %>%
-      dplyr::group_by(dplyr::across (dplyr::all_of(groups)))
-  } else if (if_any_or_all == "if_all") {
-    .df %>%
-      dplyr::ungroup () %>%
-      dplyr::filter (dplyr::if_any (dplyr::all_of (col.names), ~ !is.na(.x))) %>%
-      dplyr::group_by(dplyr::across (dplyr::all_of(groups)))
+    .data %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(dplyr::if_all(dplyr::all_of(col.names), ~ !is.na(.x))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups)))
+  } else {
+    .data %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(dplyr::if_any(dplyr::all_of(col.names), ~ !is.na(.x))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups)))
   }
 }
 
@@ -57,85 +40,127 @@ filter_out_na <- function (.df, ..., if_any_or_all = "if_all") {
 #'
 #' This function keeps rows from the data where specified columns contain NA values.
 #'
-#' @param .df A dataframe or tibble
-#' @param ... Columns to check for NA values
-#' @param if_any_or_all Should the row be kept if any or all selected columns contain NA? Defaults to "if_all".
+#' @param .data A dataframe or tibble.
+#' @param ... Columns to check for NA values.
+#' @param if_any_or_all Should the row be kept if any or all selected columns contain NA?
+#'   Must be either "if_any" or "if_all". Defaults to "if_all".
 #'
-#' @return A tibble with only rows containing NA in specified columns
+#' @return A tibble with only rows containing NA in specified columns.
+#'
+#' @importFrom dplyr ungroup select group_vars filter if_all if_any all_of group_by across
+#' @importFrom magrittr %>%
 #' @export
-filter_in_na <- function (.df, ..., if_any_or_all = "if_all") {
-  col.names <- .df %>% dplyr::ungroup() %>% dplyr::select(...) %>% names()
-  #col.names <- select_cols_default_all(.df, ..., include_grouped = FALSE)
-  groups <- dplyr::group_vars(.df)
+filter_in_na <- function(.data, ..., if_any_or_all = "if_all") {
+  if (!is.data.frame(.data)) {
+    stop("`.data` must be a data frame or tibble.", call. = FALSE)
+  }
+  if (!if_any_or_all %in% c("if_any", "if_all")) {
+    stop("`if_any_or_all` must be either \"if_any\" or \"if_all\".", call. = FALSE)
+  }
+
+  col.names <- .data %>% dplyr::ungroup() %>% dplyr::select(...) %>% names()
+  groups <- dplyr::group_vars(.data)
+
   if (if_any_or_all == "if_any") {
-    .df %>%
+    .data %>%
       dplyr::ungroup() %>%
-      dplyr::filter (dplyr::if_any (dplyr::all_of (col.names), ~ is.na(.x))) %>%
-      dplyr::group_by(dplyr::across (dplyr::all_of(groups)))
-  } else if (if_any_or_all == "if_all") {
-    .df %>%
+      dplyr::filter(dplyr::if_any(dplyr::all_of(col.names), ~ is.na(.x))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups)))
+  } else {
+    .data %>%
       dplyr::ungroup() %>%
-      dplyr::filter (dplyr::if_all (dplyr::all_of (col.names), ~ is.na(.x))) %>%
-      dplyr::group_by(dplyr::across (dplyr::all_of(groups)))
+      dplyr::filter(dplyr::if_all(dplyr::all_of(col.names), ~ is.na(.x))) %>%
+      dplyr::group_by(dplyr::across(dplyr::all_of(groups)))
   }
 }
 
 #' Filter rows in a data frame based on string matching in a column
 #'
-#' @param df A data frame or tibble.
+#' @param .data A data frame or tibble.
 #' @param col The column to filter on.
-#' @param string The string to look for.
+#' @param pattern The string pattern to look for.
 #' @param ignore_case Whether to ignore case (default is TRUE).
-#' @param drop.col Whether to remove the column that was filtered on (default is FALSE).
+#' @param drop_col Whether to remove the column that was filtered on (default is FALSE).
 #' @param negate Whether to keep or remove rows that match the string (default is FALSE).
-#' @param na.rm Whether to remove NA values (default is FALSE).
+#' @param na_rm Whether to remove NA values (default is FALSE).
+#'
 #' @return A filtered data frame.
-#' @export
-filter_str <- function(df, col, string, ignore_case = TRUE, drop.col = FALSE, negate = FALSE, na.rm = FALSE) {
+#'
+#' @importFrom dplyr filter select
+#' @importFrom stringr str_detect regex
+#' @keywords internal
+filter_str <- function(.data, col, pattern, ignore_case = TRUE, drop_col = FALSE, negate = FALSE, na_rm = FALSE) {
+  if (!is.data.frame(.data)) {
+    stop("`.data` must be a data frame or tibble.", call. = FALSE)
+  }
+  if (missing(col)) {
+    stop("`col` must be specified.", call. = FALSE)
+  }
+  if (missing(pattern) || !is.character(pattern) || length(pattern) != 1) {
+    stop("`pattern` must be a single character string.", call. = FALSE)
+  }
 
-  if (na.rm) {
-    df <- df %>% dplyr::filter(stringr::str_detect({{col}}, stringr::regex(string, ignore_case = ignore_case), negate = negate))
+  if (na_rm) {
+    .data <- .data %>%
+      dplyr::filter(stringr::str_detect({{ col }}, stringr::regex(pattern, ignore_case = ignore_case), negate = negate))
   } else {
-    df <- df %>% dplyr::filter(stringr::str_detect({{col}}, stringr::regex(string, ignore_case = ignore_case), negate = negate) | is.na({{col}}))
+    .data <- .data %>%
+      dplyr::filter(stringr::str_detect({{ col }}, stringr::regex(pattern, ignore_case = ignore_case), negate = negate) | is.na({{ col }}))
   }
 
-  if (drop.col) {
-    return(df %>% dplyr::select(-{{col}}))
+  if (drop_col) {
+    return(.data %>% dplyr::select(-{{ col }}))
   }
 
-  return(df)
+  .data
 }
 
 #' Filter rows containing a specific string in a given column
 #'
 #' This function filters rows where the specified column contains the given string.
 #'
-#' @inheritParams filter_str
+#' @param .data A data frame or tibble.
+#' @param col The column to filter on.
+#' @param pattern The string pattern to look for.
+#' @param ignore_case Whether to ignore case (default is TRUE).
+#' @param drop_col Whether to remove the column that was filtered on (default is FALSE).
+#' @param na_rm Whether to remove NA values (default is FALSE).
+#'
 #' @return A filtered data frame.
-#' @examples \dontrun{
+#'
+#' @examples
+#' \dontrun{
 #' library(dplyr)
 #' tibble(x = c("apple", "banana", "cherry")) %>%
-#'   filter_in(col = x, string = "app")
+#'   filter_in(col = x, pattern = "app")
 #' }
 #' @export
-filter_in <- function(df, col, string, ignore_case = TRUE, drop.col = FALSE, na.rm = FALSE) {
-  filter_str(df = df, col = {{col}}, string = string, ignore_case = ignore_case, drop.col = drop.col, negate = FALSE, na.rm = na.rm)
+filter_in <- function(.data, col, pattern, ignore_case = TRUE, drop_col = FALSE, na_rm = FALSE) {
+  filter_str(.data = .data, col = {{ col }}, pattern = pattern, ignore_case = ignore_case, drop_col = drop_col, negate = FALSE, na_rm = na_rm)
 }
 
 #' Filter out rows containing a specific string in a given column
 #'
 #' This function filters out rows where the specified column contains the given string.
 #'
-#' @inheritParams filter_str
+#' @param .data A data frame or tibble.
+#' @param col The column to filter on.
+#' @param pattern The string pattern to look for.
+#' @param ignore_case Whether to ignore case (default is TRUE).
+#' @param drop_col Whether to remove the column that was filtered on (default is FALSE).
+#' @param na_rm Whether to remove NA values (default is FALSE).
+#'
 #' @return A filtered data frame.
-#' @examples \dontrun{
+#'
+#' @examples
+#' \dontrun{
 #' library(dplyr)
 #' tibble(x = c("apple", "banana", "cherry")) %>%
-#'   filter_out(col = x, string = "app")
+#'   filter_out(col = x, pattern = "app")
 #' }
 #' @export
-filter_out <- function(df, col, string, ignore_case = TRUE, drop.col = FALSE, na.rm = FALSE) {
-  filter_str(df = df, col = {{col}}, string = string, ignore_case = ignore_case, drop.col = drop.col, negate = TRUE, na.rm = na.rm)
+filter_out <- function(.data, col, pattern, ignore_case = TRUE, drop_col = FALSE, na_rm = FALSE) {
+  filter_str(.data = .data, col = {{ col }}, pattern = pattern, ignore_case = ignore_case, drop_col = drop_col, negate = TRUE, na_rm = na_rm)
 }
 
 #' Filter Out Numeric Values from Selected Columns
@@ -143,15 +168,13 @@ filter_out <- function(df, col, string, ignore_case = TRUE, drop.col = FALSE, na
 #' This function filters a dataframe to retain rows where the selected columns contain non-numeric values.
 #' It can optionally remove rows where the selected columns are NA.
 #'
-#' @param df A dataframe to be filtered.
+#' @param .data A dataframe to be filtered.
 #' @param .cols Columns to check for non-numeric values; defaults to all columns.
-#' @param na.rm Logical; if TRUE, rows where the selected columns are NA are excluded.
+#' @param na_rm Logical; if TRUE, rows where the selected columns are NA are excluded.
 #'
 #' @return A dataframe with rows containing non-numeric values in the specified columns.
 #'
-#' @importFrom dplyr filter
-#' @importFrom dplyr if_any
-#' @importFrom dplyr everything
+#' @importFrom dplyr filter if_any everything
 #' @export
 #'
 #' @examples
@@ -165,19 +188,21 @@ filter_out <- function(df, col, string, ignore_case = TRUE, drop.col = FALSE, na
 #' filter_out_numeric(df)
 #'
 #' # Filter out rows with numeric values in column 'a', ignoring NAs
-#' filter_out_numeric(df, .cols = a, na.rm = TRUE)
-filter_out_numeric <- function (df, .cols = dplyr::everything(), na.rm = FALSE) {
+#' filter_out_numeric(df, .cols = a, na_rm = TRUE)
+filter_out_numeric <- function(.data, .cols = dplyr::everything(), na_rm = FALSE) {
+  if (!is.data.frame(.data)) {
+    stop("`.data` must be a data frame or tibble.", call. = FALSE)
+  }
+
   is_non_numeric <- function(x) {
     suppressWarnings(is.na(as.numeric(x)))
   }
 
-  if (na.rm) {
-    df <- df %>%
-      dplyr::filter(dplyr::if_any({{.cols}}, ~ is_non_numeric(.x) & !is.na(.x)))
+  if (na_rm) {
+    .data %>%
+      dplyr::filter(dplyr::if_any({{ .cols }}, ~ is_non_numeric(.x) & !is.na(.x)))
   } else {
-    df <- df %>%
-      dplyr::filter(dplyr::if_any({{.cols}}, is_non_numeric))
+    .data %>%
+      dplyr::filter(dplyr::if_any({{ .cols }}, is_non_numeric))
   }
-
-  df
 }

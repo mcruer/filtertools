@@ -32,10 +32,6 @@ devtools::install_github("mcruer/filtertools")
 
 - `filter_out_numeric()` - Remove rows with numeric values in selected columns
 
-### Internal Helpers
-
-- `filter_str()` - Internal string-based filtering helper
-
 ## Examples
 
 ```r
@@ -57,4 +53,4 @@ data %>% filter_in_na(optional_field)
 
 ## License
 
-MIT © Geordie McRuer
+MIT

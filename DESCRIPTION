@@ -18,9 +18,7 @@ RoxygenNote: 7.2.3
 Imports:
     dplyr (>= 1.0.0),
     stringr,
-    magrittr,
-    rlang,
-    purrr
+    magrittr
 Suggests:
     testthat (>= 3.0.0)
 URL: https://github.com/mcruer/filtertools
