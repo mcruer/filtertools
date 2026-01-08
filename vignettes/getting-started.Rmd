@@ -20,26 +20,68 @@ library(dplyr)
 ```
 
 ## Why filtertools?
-When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose:
 
-```{r verbose-dplyr, eval=FALSE}
-# Keep rows where name contains "John"
+When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose quickly.
+
+**Keep rows where name contains "John" (case-insensitive):**
+
+```{r verbose-string, eval=FALSE}
+# dplyr
 data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)))
 
-# Remove rows where status contains "inactive"
+# filtertools
+data %>% filter_in(name, "John")
+```
+
+**Remove rows where status contains "inactive":**
+
+```{r verbose-string-out, eval=FALSE}
+# dplyr
 data %>% filter(!str_detect(status, regex("inactive", ignore_case = TRUE)))
 
-# Remove rows where all of these columns are NA
-data %>% filter(!if_all(c(age, income), is.na))
-```
-
-filtertools provides intuitive wrappers that make these operations more readable:
-
-```{r filtertools-examples, eval=FALSE}
-data %>% filter_in(name, "John")
+# filtertools
 data %>% filter_out(status, "inactive")
-data %>% filter_out_na(age, income)
 ```
+
+**NA handling is especially painful.** Remove rows where specific columns are all NA, but keep rows that have at least some data:
+
+```{r verbose-na, eval=FALSE}
+# dplyr - remove rows where ALL of age, income, AND address are NA
+data %>% filter(!(is.na(age) & is.na(income) & is.na(address)))
+# or equivalently
+data %>% filter(!if_all(c(age, income, address), is.na))
+
+# filtertools
+data %>% filter_out_na(age, income, address)
+```
+
+**Find rows where ANY of several columns contains NA** (useful for data quality checks):
+
+```{r verbose-na-any, eval=FALSE}
+# dplyr
+data %>% filter(is.na(age) | is.na(income) | is.na(address))
+# or equivalently
+data %>% filter(if_any(c(age, income, address), is.na))
+
+# filtertools
+data %>% filter_in_na(age, income, address, if_any_or_all = "if_any")
+```
+
+## Tidyselect Support
+
+All filtertools functions that operate on columns support tidyselect syntax. This means you can use helpers like `everything()`, `starts_with()`, `ends_with()`, `contains()`, and `matches()`:
+```{r tidyselect-intro, eval=FALSE}
+# Check all columns for NA
+data %>% filter_out_na(everything())
+
+# Filter on columns starting with "date_"
+data %>% filter_in_na(starts_with("date_"), if_any_or_all = "if_any")
+
+# Check numeric-looking columns
+data %>% filter_out_numeric(.cols = matches("^(age|count|score)$"))
+```
+
+The exception is `str_filter()`, which operates on character vectors rather than data frames.
 
 ## String Pattern Filtering
 
@@ -49,8 +91,8 @@ Use `filter_in()` to keep rows where a column matches a pattern:
 
 ```{r filter-in-basic}
 fruits <- tibble(
- name = c("apple", "banana", "cherry", "apricot", "blueberry"),
- color = c("red", "yellow", "red", "orange", "blue")
+ name = c("apple", "banana", "cherry", "apricot", "blueberry", "strawberry"),
+ color = c("red", "yellow", "red", "orange", "blue", "red")
 )
 
 # Keep fruits containing "berry"
@@ -65,8 +107,8 @@ fruits %>% filter_in(name, "^a")
 Use `filter_out()` to remove rows where a column matches a pattern:
 
 ```{r filter-out-basic}
-# Remove fruits containing "apple"
-fruits %>% filter_out(name, "apple")
+# Remove berries
+fruits %>% filter_out(name, "berry")
 
 # Remove red fruits
 fruits %>% filter_out(color, "red")
@@ -75,6 +117,7 @@ fruits %>% filter_out(color, "red")
 ### Case sensitivity
 
 By default, matching is case-insensitive:
+
 ```{r case-insensitive}
 fruits %>% filter_in(name, "APPLE")
 ```
@@ -96,27 +139,46 @@ fruits %>% filter_in(name, "^[ab]")
 # Ends with "y"
 fruits %>% filter_in(name, "y$")
 
-# Contains "rr" or "pp"
-fruits %>% filter_in(name, "rr|pp")
+# Match specific fruits by name
+fruits %>% filter_in(name, "apple|banana|cherry")
 ```
 
 ## NA Handling in String Filters
 
-By default, `filter_in()` and `filter_out()` **preserve rows with NA values**. This prevents accidental data loss during exploratory analysis:
+By default, `filter_in()` and `filter_out()` **preserve rows with NA values**. This design choice was made deliberately: when you're less explicit about what to filter, less gets filtered out. This encourages you to think carefully about how NA values should be handled in your analysis.
 
-```{r na-handling-default}
+### filter_in() preserves NAs
+
+This behavior is most surprising with `filter_in()`. You might expect that filtering for rows containing "active" would only return rows that actually contain "active" - but NA rows are kept too:
+
+```{r na-handling-filter-in}
 data_with_na <- tibble(
  status = c("active", "inactive", "pending", NA, "active"),
  value = 1:5
 )
 
-# NA rows are kept by default
-data_with_na %>% filter_out(status, "inactive")
+# NA rows are kept by default!
+data_with_na %>% filter_in(status, "active")
 ```
 
 Use `na_rm = TRUE` to exclude NA rows:
 
-```{r na-handling-remove}
+```{r na-handling-filter-in-remove}
+data_with_na %>% filter_in(status, "active", na_rm = TRUE)
+```
+
+### filter_out() also preserves NAs
+
+Similarly, `filter_out()` keeps NA rows because NA values don't match the pattern being filtered out:
+
+```{r na-handling-filter-out}
+# NA rows are kept - they don't contain "inactive"
+data_with_na %>% filter_out(status, "inactive")
+```
+
+Use `na_rm = TRUE` to also exclude NA rows:
+
+```{r na-handling-filter-out-remove}
 data_with_na %>% filter_out(status, "inactive", na_rm = TRUE)
 ```
 
@@ -155,23 +217,11 @@ messy_data %>% filter_out_na(a, b, if_any_or_all = "if_any")
 The inverse operation - keep only rows containing NA:
 
 ```{r filter-in-na}
-# Find rows where any column has NA
+# Find rows where any column has NA (useful for data quality checks)
 messy_data %>% filter_in_na(a, b, if_any_or_all = "if_any")
 
 # Find rows where all specified columns are NA
 messy_data %>% filter_in_na(a, b, if_any_or_all = "if_all")
-```
-
-### Using tidyselect
-
-Both functions support tidyselect syntax:
-
-```{r tidyselect}
-# Check all columns
-messy_data %>% filter_out_na(everything(), if_any_or_all = "if_any")
-
-# Check columns starting with a pattern
-messy_data %>% filter_in_na(starts_with("a"), if_any_or_all = "if_any")
 ```
 
 ## Finding Non-Numeric Values
