@@ -24,6 +24,7 @@ Suggests:
     knitr,
     rmarkdown,
     tibble
+Config/testthat/edition: 3
 VignetteBuilder: knitr
 URL: https://github.com/mcruer/filtertools
 BugReports: https://github.com/mcruer/filtertools/issues

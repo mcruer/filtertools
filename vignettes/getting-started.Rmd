@@ -26,11 +26,7 @@ When exploring data interactively, you often need to filter rows based on string
 **Keep rows where name contains "John" (case-insensitive):**
 
 ```{r verbose-string, eval=FALSE}
-
-When exploring data interactively, you often need to filter rows based on string patterns or NA values. With base dplyr, this can get verbose:
-
-```{r verbose-dplyr, eval=FALSE}
-# Keep rows where name contains "John" (case-insensitive)
+# dplyr
 data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)))
 
 # filtertools
@@ -43,7 +39,6 @@ data %>% filter_in(name, "John")
 # dplyr
 data %>% filter(!str_detect(status, regex("inactive", ignore_case = TRUE)))
 
-<<<<<<< HEAD
 # filtertools
 data %>% filter_out(status, "inactive")
 ```
@@ -69,26 +64,6 @@ data %>% filter(is.na(age) | is.na(income) | is.na(address))
 data %>% filter(if_any(c(age, income, address), is.na))
 
 # filtertools
-data %>% filter_in_na(age, income, address, if_any_or_all = "if_any")
-```
-
-# Keep rows matching "John" OR where the column is NA (to preserve NA rows)
-data %>% filter(str_detect(name, regex("John", ignore_case = TRUE)) | is.na(name))
-
-# Remove rows where ALL of these columns are NA
-data %>% filter(!if_all(c(age, income, address), is.na))
-
-# Find rows where ANY of these columns is NA
-data %>% filter(if_any(c(age, income, address), is.na))
-```
-
-filtertools provides intuitive wrappers that make these operations more readable:
-
-```{r filtertools-equivalents, eval=FALSE}
-data %>% filter_in(name, "John", na_rm = TRUE)
-data %>% filter_out(status, "inactive", na_rm = TRUE)
-data %>% filter_in(name, "John")
-data %>% filter_out_na(age, income, address)
 data %>% filter_in_na(age, income, address, if_any_or_all = "if_any")
 ```
 

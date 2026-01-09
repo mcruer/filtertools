@@ -140,6 +140,7 @@ filter_in_na <- function(.data, ..., if_any_or_all = "if_all") {
 #' @importFrom dplyr filter select
 #' @importFrom stringr str_detect regex
 #' @keywords internal
+#' @noRd
 filter_str <- function(.data, col, pattern, ignore_case = TRUE, drop_col = FALSE, negate = FALSE, na_rm = FALSE) {
   if (!is.data.frame(.data)) {
     stop("`.data` must be a data frame or tibble.", call. = FALSE)
